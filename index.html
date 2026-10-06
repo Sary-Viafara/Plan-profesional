@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- PWA -->
+<meta name="theme-color" content="#C9A84C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Plan">
+<meta name="application-name" content="Mi Plan">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Mi Plan: Mujer Profesional</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --ink: #1A1410;
+    --gold: #C9A84C;
+    --gold-light: #E8D5A0;
+    --rust: #8B4513;
+    --sage: #5C7A5E;
+    --muted: #6B6055;
+    --border: #D4C9B8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 60px 40px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: 'S';
+    position: absolute;
+    right: -20px;
+    top: -30px;
+    font-size: 300px;
+    color: var(--gold-light);
+    opacity: 0.2;
+    line-height: 1;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(36px, 7vw, 68px);
+    font-weight: 300;
+    line-height: 1.05;
+    max-width: 700px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--muted);
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  .progress-bar {
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    max-width: 400px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--rust));
+    width: 0%;
+    transition: width 1.5s ease;
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 40px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 20px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all 0.3s;
+    margin-bottom: -1px;
+  }
+
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--gold);
+  }
+
+  /* CONTENT */
+  .tab-content { display: none; padding: 48px 40px; }
+  .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* PILLARS */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 8px;
+  }
+
+  .pillar-card {
+    border: 1px solid var(--border);
+    padding: 32px 28px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+  }
+
+  .pillar-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--gold);
+    transition: height 0.4s ease;
+  }
+
+  .pillar-card:hover::before,
+  .pillar-card.done::before { height: 100%; }
+
+  .pillar-card.done {
+    background: #FDFAF4;
+  }
+
+  .pillar-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .pillar-card h3 {
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .pillar-card p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .pillar-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .check-btn {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .check-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .pillar-card.done .check-btn {
+    background: var(--gold);
+    color: white;
+    border-color: var(--gold);
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    position: relative;
+    padding-left: 40px;
+  }
+
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+
+  .phase {
+    position: relative;
+    margin-bottom: 48px;
+    opacity: 0;
+    transform: translateX(-16px);
+    animation: slideIn 0.5s ease forwards;
+  }
+
+  .phase:nth-child(1) { animation-delay: 0.1s; }
+  .phase:nth-child(2) { animation-delay: 0.2s; }
+  .phase:nth-child(3) { animation-delay: 0.3s; }
+  .phase:nth-child(4) { animation-delay: 0.4s; }
+
+  @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+
+  .phase::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px var(--cream), 0 0 0 4px var(--gold);
+  }
+
+  .phase-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .phase h3 {
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  .phase-items {
+    list-style: none;
+  }
+
+  .phase-items li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .phase-items li::before {
+    content: '—';
+    color: var(--gold);
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* RECURSOS */
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .resource-item {
+    padding: 24px;
+    border: 1px solid var(--border);
+    background: white;
+  }
+
+  .resource-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: white;
+    background: var(--sage);
+    padding: 3px 8px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+
+  .resource-tag.gold { background: var(--gold); }
+  .resource-tag.rust { background: var(--rust); }
+
+  .resource-item h4 {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .resource-item p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* HÁBITOS */
+  .habits-section { max-width: 720px; }
+
+  .habit-group { margin-bottom: 40px; }
+  .habit-group h3 {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .habit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px dotted var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .habit-item:hover { padding-left: 8px; }
+
+  .habit-checkbox {
+    width: 18px; height: 18px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .habit-item.checked .habit-checkbox {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: white;
+  }
+
+  .habit-text strong {
+    display: block;
+    font-size: 17px;
+    font-weight: 400;
+    margin-bottom: 2px;
+  }
+
+  .habit-text span {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* FOOTER */
+  .manifesto {
+    margin-top: 60px;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .manifesto blockquote {
+    font-size: clamp(20px, 4vw, 32px);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.4;
+  }
+
+  .manifesto cite {
+    display: block;
+    margin-top: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    font-style: normal;
+  }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    header, .nav-tabs, .tab-content { padding-left: 20px; padding-right: 20px; }
+    .pillars-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Proyecto de vida · Sary</div>
+  <h1>Mujer Profesional<br><em>Completa</em></h1>
+  <p class="subtitle">Un plan estructurado para desarrollar las habilidades que definen a una profesional de alto nivel: técnicas, comunicativas, y personales.</p>
+  <div class="progress-bar">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 / 12 habilidades</div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('pilares')">Pilares</button>
+  <button class="tab-btn" onclick="switchTab('roadmap')">Hoja de Ruta</button>
+  <button class="tab-btn" onclick="switchTab('habitos')">Hábitos Diarios</button>
+  <button class="tab-btn" onclick="switchTab('recursos')">Recursos</button>
+</nav>
+
+<!-- TAB: PILARES -->
+<div class="tab-content active" id="tab-pilares">
+  <div class="pillars-grid">
+
+    <div class="pillar-card" id="p1">
+      <div class="pillar-icon">🗣️</div>
+      <div class="pillar-number">01 · COMUNICACIÓN</div>
+      <h3>Expresión Verbal</h3>
+      <p>Hablar con claridad, pausas estratégicas, vocabulario preciso. Que cuando hables, la gente escuche.</p>
+      <button class="check-btn" onclick="togglePillar('p1')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p2">
+      <div class="pillar-icon">📝</div>
+      <div class="pillar-number">02 · ESCRITURA</div>
+      <h3>Escritura Profesional</h3>
+      <p>Emails, reportes, documentación. Escribir bien es pensar bien. Estructura, concisión, tono correcto.</p>
+      <button class="check-btn" onclick="togglePillar('p2')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p3">
+      <div class="pillar-icon">📖</div>
+      <div class="pillar-number">03 · LECTURA</div>
+      <h3>Lectura Activa</h3>
+      <p>Leer con comprensión crítica, extraer ideas clave, tomar notas. No leer por leer — leer para crecer.</p>
+      <button class="check-btn" onclick="togglePillar('p3')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p4">
+      <div class="pillar-icon">🧠</div>
+      <div class="pillar-number">04 · PENSAMIENTO</div>
+      <h3>Pensamiento Estructurado</h3>
+      <p>Organizar ideas antes de hablar o escribir. Lógica, argumentación, síntesis. El orden mental que se nota.</p>
+      <button class="check-btn" onclick="togglePillar('p4')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p5">
+      <div class="pillar-icon">💻</div>
+      <div class="pillar-number">05 · CARRERA TÉCNICA</div>
+      <h3>Java & Desarrollo</h3>
+      <p>Tu base técnica. Bootcamp Generation, proyectos reales, Agile, portfolio. El núcleo de tu identidad profesional.</p>
+      <button class="check-btn" onclick="togglePillar('p5')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p6">
+      <div class="pillar-icon">🤝</div>
+      <div class="pillar-number">06 · PRESENCIA</div>
+      <h3>Presencia & Marca Personal</h3>
+      <p>Cómo te presentas, tu LinkedIn, cómo te describen otros. Gestionar la percepción que el mundo tiene de ti.</p>
+      <button class="check-btn" onclick="togglePillar('p6')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p7">
+      <div class="pillar-icon">⏱️</div>
+      <div class="pillar-number">07 · GESTIÓN</div>
+      <h3>Productividad & Tiempo</h3>
+      <p>Sistemas que funcionan para ti. Planificación semanal, prioridades, no reaccionar — decidir.</p>
+      <button class="check-btn" onclick="togglePillar('p7')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p8">
+      <div class="pillar-icon">💡</div>
+      <div class="pillar-number">08 · MENTALIDAD</div>
+      <h3>Mentalidad de Crecimiento</h3>
+      <p>Creencias que te limitan vs. las que te expanden. El trabajo interno que hace posible todo lo demás.</p>
+      <button class="check-btn" onclick="togglePillar('p8')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p9">
+      <div class="pillar-icon">🌐</div>
+      <div class="pillar-number">09 · INGLÉS</div>
+      <h3>Inglés Profesional</h3>
+      <p>El idioma del mercado global tech. Lectura técnica, entrevistas, comunicación con equipos internacionales.</p>
+      <button class="check-btn" onclick="togglePillar('p9')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p10">
+      <div class="pillar-icon">💰</div>
+      <div class="pillar-number">10 · FINANZAS</div>
+      <h3>Inteligencia Financiera</h3>
+      <p>Saber administrar, negociar tu salario, entender contratos. Una profesional maneja su dinero con criterio.</p>
+      <button class="check-btn" onclick="togglePillar('p10')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p11">
+      <div class="pillar-icon">🌱</div>
+      <div class="pillar-number">11 · BIENESTAR</div>
+      <h3>Cuerpo & Energía</h3>
+      <p>Sueño, movimiento, alimentación. La base física que sostiene la energía mental para todo lo demás.</p>
+      <button class="check-btn" onclick="togglePillar('p11')">✓ Marcar como en progreso</button>
+    </div>
+
+    <div class="pillar-card" id="p12">
+      <div class="pillar-icon">🔗</div>
+      <div class="pillar-number">12 · RED</div>
+      <h3>Red Profesional</h3>
+      <p>Construir relaciones reales en el mundo tech. Mentores, colegas, comunidad. No estás sola en esto.</p>
+      <button class="check-btn" onclick="togglePillar('p12')">✓ Marcar como en progreso</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: ROADMAP -->
+<div class="tab-content" id="tab-roadmap">
+  <div class="roadmap">
+
+    <div class="phase">
+      <div class="phase-label">Fase 01 · Meses 1–3</div>
+      <h3>Cimientos</h3>
+      <ul class="phase-items">
+        <li>Terminar el bootcamp Generation con el mejor desempeño posible</li>
+        <li>Completar el proyecto SAC Task Manager y documentarlo bien</li>
+        <li>Establecer hábito de lectura: 20 min/día (empezar con libros de comunicación)</li>
+        <li>Crear o actualizar tu perfil de LinkedIn profesional</li>
+        <li>Definir creencias limitantes actuales y comenzar a reescribirlas</li>
+        <li>Inglés: 15 min diarios de práctica (podcasts tech, lectura de documentación)</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Fase 02 · Meses 4–6</div>
+      <h3>Construcción de Voz</h3>
+      <ul class="phase-items">
+        <li>Practicar explicar conceptos técnicos en voz alta (grabarte y escucharte)</li>
+        <li>Escribir al menos 2 posts o artículos técnicos (LinkedIn o blog)</li>
+        <li>Leer 1 libro de comunicación o desarrollo profesional por mes</li>
+        <li>Tomar un curso corto de escritura profesional o presentaciones</li>
+        <li>Hacer mock interviews de forma activa: técnicas y conductuales</li>
+        <li>Construir tu primer portfolio con 2–3 proyectos documentados</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Fase 03 · Meses 7–12</div>
+      <h3>Presencia & Mercado</h3>
+      <ul class="phase-items">
+        <li>Primer trabajo o proyecto freelance real — aunque sea pequeño</li>
+        <li>Hablar en público: meetup, evento tech, o clase en la comunidad</li>
+        <li>Establecer sistema de productividad personal que realmente funcione</li>
+        <li>Negociar — sueldo, proyecto, condiciones. Practicar con intención</li>
+        <li>Inglés conversacional: al menos una reunión/entrevista en inglés</li>
+        <li>Empezar a construir comunidad: mentores, pares, personas que inspiran</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Fase 04 · Año 2+</div>
+      <h3>Consolidación</h3>
+      <ul class="phase-items">
+        <li>Posición técnica estable con crecimiento real</li>
+        <li>Comunicación verbal y escrita sólida en español e inglés</li>
+        <li>Educación continua: cursos, certificaciones, o carrera universitaria online</li>
+        <li>Referente para otras — mentorar, compartir, enseñar lo aprendido</li>
+        <li>Inteligencia financiera activa: ahorro, inversión básica, independencia</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: HÁBITOS -->
+<div class="tab-content" id="tab-habitos">
+  <div class="habits-section">
+
+    <div class="habit-group">
+      <h3>Cada día</h3>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>20 min de lectura</strong>
+          <span>Un libro real. No redes sociales. Libros técnicos, de comunicación, o de mentalidad.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>15 min de inglés</strong>
+          <span>Podcast, artículo, Duolingo, o documentación técnica en inglés.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Escribir algo</strong>
+          <span>Una reflexión, una nota de lo que aprendiste, un borrador. La escritura es un músculo.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Revisar tus metas del día</strong>
+          <span>Al inicio del día: ¿qué 3 cosas importan hoy? Al final: ¿las hice?</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="habit-group">
+      <h3>Cada semana</h3>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Revisión semanal</strong>
+          <span>¿Qué avancé? ¿Qué evité? ¿Qué necesito ajustar? Sé honesta contigo.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Practicar explicar en voz alta</strong>
+          <span>Explica un concepto como si enseñaras a alguien. Grábate. Mejora.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Una conexión profesional</strong>
+          <span>Envía un mensaje, comenta algo con intención, o asiste a un evento virtual.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="habit-group">
+      <h3>Cada mes</h3>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Un libro terminado</strong>
+          <span>No importa si es corto. Terminar libros construye disciplina y vocabulario.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Un artículo o post escrito</strong>
+          <span>Algo que hayas aprendido, una reflexión técnica, una experiencia. Publicar es comprometerse.</span>
+        </div>
+      </div>
+      <div class="habit-item" onclick="toggleHabit(this)">
+        <div class="habit-checkbox"></div>
+        <div class="habit-text">
+          <strong>Revisión de creencias</strong>
+          <span>¿Qué historia me cuento sobre mí? ¿Sigue siendo la que quiero? Ajusta.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: RECURSOS -->
+<div class="tab-content" id="tab-recursos">
+  <div class="resources-grid">
+
+    <div class="resource-item">
+      <span class="resource-tag gold">Comunicación</span>
+      <h4>El arte de hablar en público</h4>
+      <p>Libro de Dale Carnegie o "Speak" de Tina Sillig. Práctica > teoría. Busca Toastmasters en tu ciudad o en línea.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag">Escritura</span>
+      <h4>Cómo escribir bien</h4>
+      <p>"On Writing Well" de Zinsser (en inglés) o "El escritor y sus fantasmas" para mentalidad. Gratis: blog Writing Commons.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag rust">Técnico</span>
+      <h4>Tu bootcamp + más allá</h4>
+      <p>Generation (activo ahora). Siguiente: Spring Boot en profundidad, GitHub Pages para portfolio, proyectos open source.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag gold">Inglés</span>
+      <h4>Inglés para tech</h4>
+      <p>Podcast "Syntax.fm" (inglés técnico). Canal Eng Subtitles en YouTube. Leer documentación de Java/Spring en inglés desde ya.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag">Mentalidad</span>
+      <h4>Reprogramación mental</h4>
+      <p>"Mindset" de Carol Dweck. "El poder del ahora" de Tolle. Neuroplasticidad: charlas de Andrew Huberman (YouTube, gratis).</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag rust">Productividad</span>
+      <h4>Sistemas que funcionan</h4>
+      <p>"Getting Things Done" (GTD) de David Allen o el método Bullet Journal. La clave: que sea simple y que lo hagas.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag gold">Carrera</span>
+      <h4>Marca personal tech</h4>
+      <p>LinkedIn optimizado + GitHub activo. "Show Your Work" de Austin Kleon — el libro más corto y más importante sobre visibilidad.</p>
+    </div>
+
+    <div class="resource-item">
+      <span class="resource-tag">Finanzas</span>
+      <h4>Educación financiera</h4>
+      <p>"Padre Rico Padre Pobre" para mentalidad. "El hombre más rico de Babilonia" para hábitos. Después: inversión básica con sentido.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="manifesto">
+  <blockquote>
+    "No esperas a estar lista.<br>Te vuelves lista <em>haciéndolo</em>."
+  </blockquote>
+  <cite>Tu plan · Tu ritmo · Tu versión</cite>
+</div>
+
+<script>
+  function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function togglePillar(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('done');
+    const btn = card.querySelector('.check-btn');
+    if (card.classList.contains('done')) {
+      btn.textContent = '✓ En progreso';
+    } else {
+      btn.textContent = '✓ Marcar como en progreso';
+    }
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const total = 12;
+    const done = document.querySelectorAll('.pillar-card.done').length;
+    const pct = (done / total) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = done + ' / ' + total + ' habilidades';
+  }
+
+  function toggleHabit(el) {
+    el.classList.toggle('checked');
+    const cb = el.querySelector('.habit-checkbox');
+    cb.textContent = el.classList.contains('checked') ? '✓' : '';
+  }
+
+  // Animate progress on load
+  setTimeout(() => {
+    document.getElementById('progressFill').style.width = '0%';
+  }, 100);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(function (r) { console.log('[PWA] SW:', r.scope); })
+      .catch(function (e) { console.info('[PWA] Requiere HTTPS:', e.message); });
+  });
+}
+</script>
+</body>
+</html>
